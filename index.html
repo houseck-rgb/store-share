@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1B3A8C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>매장 업무 바로 공유</title>
+<style>
+:root{--bg:#F3F5FA;--card:#fff;--ink:#141a2b;--sub:#5b6478;--line:#dfe3ec;--brand:#1B3A8C;--accent:#E0242A;--ok:#0F8A4B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+header{background:var(--brand);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px}
+header .brand{font-size:11px;letter-spacing:.12em;opacity:.7;font-weight:700}
+header h1{margin:2px 0 0;font-size:19px}
+header p{margin:4px 0 0;font-size:13px;opacity:.8}
+.stick{position:sticky;top:0;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.toc{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:#eef1f8;border-bottom:1px solid var(--line);scrollbar-width:none}
+.toc::-webkit-scrollbar,.tabs::-webkit-scrollbar{display:none}
+.toc button{flex:1 0 auto;border:0;background:#fff;border-radius:12px;padding:10px 14px;font-size:15px;font-weight:800;color:var(--sub);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.toc button small{display:block;font-size:11px;font-weight:600;opacity:.75;margin-top:2px}
+.toc button.on{background:var(--accent);color:#fff}
+.tabs{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs button{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:15px;font-weight:600;color:var(--sub)}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tabs button.add{border-style:dashed;color:var(--brand)}
+main{padding:14px 16px 140px;max-width:640px;margin:0 auto}
+.img{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.img img{display:block;width:100%}
+.img .empty{display:grid;gap:8px;place-items:center;align-content:center;width:100%;min-height:260px;border:0;background:#eef2f8;color:var(--brand);font:inherit;font-size:15px;padding:24px;text-align:center}
+.img .empty strong{font-size:18px}
+.img .empty span{color:var(--sub);max-width:26ch}
+.img .multi{padding:9px 14px;background:#eef2f8;color:var(--brand);font-weight:700;font-size:14px;border-top:1px solid var(--line)}
+.hint{font-size:12px;color:var(--sub);text-align:center;margin:6px 0 14px}
+.seg{display:flex;background:#e6e9f1;border-radius:10px;padding:3px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font-size:14px;font-weight:600;color:var(--sub)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+pre{white-space:pre-wrap;word-break:keep-all;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0;font:15px/1.6 inherit;font-family:inherit}
+.tools{display:flex;justify-content:center;gap:18px;margin-top:14px}
+.tools button{border:0;background:none;color:var(--brand);font-size:14px;font-weight:600;text-decoration:underline}
+.tools button.danger{color:var(--accent)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px}
+.bar button{border:0;border-radius:12px;font-size:17px;font-weight:700;padding:15px}
+#share{flex:1;background:var(--accent);color:#fff}
+#copy{background:#e6e9f1;color:var(--ink);padding:15px 18px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:rgba(20,26,43,.92);color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;max-width:90%;text-align:center;z-index:30}
+.zoom{position:fixed;inset:0;background:#000;z-index:20;overflow:auto}
+.zoom img{width:200%;max-width:none;display:block}
+.zoom button{position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.9);font-size:22px}
+dialog{border:0;border-radius:16px;padding:18px;width:min(92vw,460px);max-height:90vh}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h2{margin:0 0 12px;font-size:18px}
+dialog label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+dialog input,dialog textarea,dialog select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:15px inherit;font-family:inherit;background:#fff;color:var(--ink)}
+dialog textarea{min-height:90px}
+.prev{display:block;max-height:180px;max-width:100%;margin-top:8px;border-radius:10px;border:1px solid var(--line)}
+.drow{display:flex;gap:8px;margin-top:16px}
+.drow button{flex:1;border:0;border-radius:10px;padding:13px;font-size:16px;font-weight:700}
+header{position:relative}
+.eduBtn{position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));border:0;background:#fff;color:var(--brand);border-radius:10px;padding:9px 11px;font-size:14px;font-weight:800}
+#eduDlg h3{margin:16px 0 6px;font-size:15px;color:var(--brand)}
+#eduDlg .note{margin:4px 0;font-size:13px;color:var(--sub);line-height:1.5}
+#eduDlg .chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--ink);margin:6px 0}
+#eduDlg .chk input{width:20px;height:20px;flex:none;margin:1px 0 0}
+.big{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:800;text-align:center;background:var(--brand);color:#fff;margin-top:8px}
+.big.pick{background:var(--ok);color:#fff!important;font-size:16px!important}
+.big:disabled{opacity:.6}
+.prog{height:6px;background:#e6e9f1;border-radius:6px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.edu{position:fixed;inset:0;z-index:40;background:#0d1220;color:#fff;display:flex;flex-direction:column}
+.etop{display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;font-weight:700;font-size:15px}
+.etop button{width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.9);font-size:20px}
+.ebody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.ebody img{display:block;width:100%;height:auto}
+.ebody pre{margin:0;border-radius:0;border:0;background:#fff;color:var(--ink)}
+.ebar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#0d1220}
+.ebar button{flex:1;border:0;border-radius:12px;padding:14px 6px;font-size:16px;font-weight:800;background:#e6e9f1;color:var(--ink)}
+.ebar #eSay{background:var(--accent);color:#fff}
+.ebar button:disabled{opacity:.35}
+[hidden]{display:none!important}
+</style>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<meta name="apple-mobile-web-app-title" content="업무 공유">
+</head>
+<body>
+<header><button class="eduBtn" id="eduOpen" type="button">📚 교육 사진첩</button><div class="brand">최우영씨푸드그룹</div><h1>📲 매장 업무 바로 공유</h1><p id="sub"></p></header>
+<div class="stick"><nav class="toc" id="toc"></nav><nav class="tabs" id="tabs"></nav></div>
+<main>
+  <div class="img" id="imgBox"></div>
+  <div class="hint" id="hint">이미지를 누르면 크게 볼 수 있어요</div>
+  <div class="seg" id="seg">
+    <button data-l="ko" class="on">한국어</button>
+    <button data-l="both">한국어+English</button>
+    <button data-l="en">English</button>
+  </div>
+  <pre id="txt"></pre>
+  <div class="tools"><button id="edit">이미지·설명 수정</button><button id="reset" hidden>기본값으로</button><button id="del" class="danger" hidden>이 항목 삭제</button></div>
+</main>
+<div class="bar"><button id="copy">설명 복사</button><button id="share">📤 직원에게 공유</button></div>
+<div class="zoom" id="zoom" hidden><img id="zimg" alt=""><button id="zx" aria-label="닫기">✕</button></div>
+<div class="toast" id="toast" hidden></div>
+
+<dialog id="eduDlg">
+  <h2>📚 교육 사진첩</h2>
+  <p class="note">서버(파이어베이스 등)에 올리지 않아요. 이 휴대폰 사진첩에만 저장하고, 사진첩에서 불러와 교육합니다.</p>
+  <h3>① 교육 사진 전체를 사진첩에 저장</h3>
+  <label class="chk"><input type="checkbox" id="eduText" checked><span>사진 아래에 설명 글 넣기<br><small style="color:var(--sub)">앱 없이 사진만 봐도 교육할 수 있어요</small></span></label>
+  <p class="note" id="eduLang"></p>
+  <button class="big" id="eduSave" type="button">사진 만들기</button>
+  <div class="prog" id="eduProg" hidden><i></i></div>
+  <p class="note" id="eduHow"></p>
+  <h3>② 사진첩에서 불러와 교육하기</h3>
+  <p class="note">저장해 둔 교육 사진을 여러 장 골라 한 장씩 넘기며 교육해요.</p>
+  <label class="big pick">📂 사진첩에서 사진 고르기<input type="file" id="eduPick" accept="image/*" multiple hidden></label>
+  <div class="drow"><button id="eduClose" type="button" style="background:#e6e9f1">닫기</button></div>
+</dialog>
+
+<div class="edu" id="edu" hidden>
+  <div class="etop"><span id="eNo"></span><button id="eX" type="button" aria-label="닫기">✕</button></div>
+  <div class="ebody" id="eBody"><img id="eImg" alt=""><pre id="eTxt" hidden></pre></div>
+  <div class="ebar"><button id="ePrev" type="button">◀ 이전</button><button id="eSay" type="button">🔊 읽어주기</button><button id="eNext" type="button">다음 ▶</button></div>
+</div>
+
+<dialog id="dlg">
+  <h2 id="dTitle">새 항목 추가</h2>
+  <label>목차(분류)</label><select id="fCat"></select>
+  <label>제목</label><input id="fTitle" placeholder="예: 키오스크 오류 처리">
+  <label>이미지</label><input id="fImg" type="file" accept="image/*">
+  <img id="fPrev" class="prev" alt="" hidden>
+  <label>한국어 설명</label><textarea id="fKo"></textarea>
+  <label>English (선택)</label><textarea id="fEn"></textarea>
+  <div class="drow"><button id="fCancel" style="background:#e6e9f1">취소</button><button id="fSave" style="background:var(--brand);color:#fff">저장</button></div>
+</dialog>
+
+<script>
+const IMG_DRINK="assets/a0810928d2886e05.webp";
+const IMG_MENU="assets/4edae0af7057e32d.webp", IMG_TABLEPOS="assets/27bb1ea6d21382b8.webp", IMG_MAINPOS="assets/cb640b869db69edb.webp",
+      IMG_OPEN_KO="assets/3ed50bf53e8b353c.webp", IMG_OPEN_EN="assets/3551819cb12735d5.webp",
+      IMG_SPLIT="assets/4712de1c344c2d92.webp", IMG_CANCEL="assets/cc8fa9024e9e19d9.webp", IMG_CARD="assets/2502d245892e50ae.webp";
+
+const IMG_SALMON="assets/bcf9ab59fbd4f438.webp";
+const IMG_PREPAY="assets/9cb096e2bc99ebf8.webp",IMG_PHONE_CHG="assets/9a908cec8308997f.webp";
+const IMG_PHONE_BUSY="assets/2f8117b78eaff01e.webp";
+const IMG_PREPAY_FLOW="assets/1ac421411650301e.webp",IMG_PREPAY_NOTE="assets/126828ee453fd17c.webp";
+const IMG_GOGIYA1="assets/49114fa0e9ed504c.webp",IMG_GOGIYA2="assets/de1cb49e1224f5e4.webp",IMG_GOGIYA3="assets/9321ee15fd4cf67b.webp";
+const IMG_WATER_OFF="assets/aa0c2b613baad677.webp";
+const IMG_FWD_ON="assets/687fe8c10b49801e.webp",IMG_FWD_OFF="assets/27e23e63b1abfe17.webp";
+const IMG_SUSHI_TOP="assets/561f33e2f4e5278f.webp",IMG_SUSHI_GEUK="assets/556a583b134fd78b.webp",IMG_SUSHI_PRICE="assets/f7624a22ddeb3a9d.webp";
+const IMG_SPOUT="assets/8c373b7705dcb4d8.jpg";
+const ORDER_KO="마감 순서: ① 주방포스 끄기 → ② 테이블오더포스 마감 → ③ 메인포스 마감", ORDER_EN="Closing order: ① Turn off kitchen POS → ② Table-order POS closing → ③ Main POS closing";
+const SPLIT_NOTE_KO="⚠️ 「리딩완료」가 뜨면 반드시 카드를 빼주세요. 빼지 않고 다음 결제를 하면 오류가 날 수 있어요.", SPLIT_NOTE_EN="⚠️ When 「리딩완료」(Read complete) appears, ALWAYS remove the card. Starting the next payment with the card still inserted can cause errors.";
+
+const CATS=[
+ {id:"open",name:"🌅 개점",sub:"아침 개점 ① 메인포스 → ② 주방 → ③ 태블릿 → ④ 날짜 확인 · 고기야 홀 오픈"},
+ {id:"close",name:"🧾 마감",sub:"포스 마감 ① 주방 → ② 테이블오더 → ③ 메인 · 아침/저녁 마감"},
+ {id:"pay",name:"💳 결제",sub:"카드 결제 · 체크기 결제 · 분할결제 · 취소 · 재결제 · 선결제 받기 · 선결제 노트"},
+ {id:"drink",name:"🍶 술 주문",sub:"초보자 교육 · 소주/맥주 주문 시 함께 드리는 것"},
+ {id:"sushi",name:"🍣 초밥",sub:"최상초밥 · 극상초밥 구성 · 단품 가격표 · 연어소스 · 스파우트 간장"},
+ {id:"store",name:"🛠 매장 업무",sub:"메뉴 수정 후 포스 처리 · 전화기 · 무선 전화기 충전·통화중 금지 · 전화 착신 · 샐러드바 · 물 잠금 · 냉장고 문 닫힘"},
+ {id:"etc",name:"📌 추가 자료",sub:"직접 추가한 교육자료"}
+];
+
+const BUILTIN=[
+ // ---- 개점 ----
+ {id:"opening",cat:"open",title:"포스·태블릿 개점 순서",file:"포스_태블릿_개점순서.jpg",fileEn:"POS_tablet_opening_guide.jpg",img:IMG_OPEN_KO,imgEn:IMG_OPEN_EN,
+  ko:"🌅 포스·태블릿 개점 순서\n모든 태블릿의 영업일이 「오늘 날짜」인지 꼭 확인하세요.\n(어제 개점 오류로 주방·홀 영수증이 출력되지 않았고, 태블릿별 날짜가 달라 매출에도 이상이 생겼습니다.)\n\n1. 메인 포스 개점 — 메인 포스에서 먼저 개점\n2. 주방에 전달 — \"주방 켜주세요\"\n3. 테이블 태블릿 개점 — 각 태블릿에서 개점 (아이디: 고선애 / 비밀번호: 1234)\n4. 오늘 날짜 확인 — 태블릿 개점 후 [마감] 화면에 들어가 오늘 날짜인지 확인\n   ※ 날짜 확인만 하고, 마감은 누르지 마세요.\n\n⚠️ 어제 날짜로 되어 있다면?\n① 프로그램을 닫고, 옆 전원 버튼을 꾹 눌러 전원을 완전히 끈 뒤 다시 켜기\n② 프로그램 다시 열기 → [마감] 화면에서 날짜 다시 확인\n③ 여전히 어제 날짜라면: [마감] → [개점] → 오늘 날짜 재확인\n\n✅ 태블릿마다 하나씩 확인해 주세요.",
+  en:"🌅 POS & tablet opening guide\nMake sure every tablet shows today's business date.\n(Yesterday, an opening error stopped order tickets printing in the kitchen and dining area, and different tablet dates caused sales discrepancies.)\n\n1. Open the main POS first — start the business day on the main POS\n2. Tell the kitchen — \"Please turn on the kitchen system.\"\n3. Open every table's tablet — ID: 고선애 / Password: 1234\n4. Check the business date — go to the [마감] (Close) screen and check the date is today\n   ※ Only check the date. Do NOT complete closing.\n\n⚠️ If a tablet shows yesterday's date\n① Close the program, press and hold the side power button to turn the tablet off completely, then turn it back on\n② Reopen the program → check the date on the [마감] (Close) screen\n③ Still yesterday? Complete [마감] (Close) → [개점] (Open) → check the date again\n\n✅ Check every tablet, one by one."},
+
+ {id:"gogiya-hall-open",cat:"open",title:"고기야 홀 오픈 방법",img:IMG_GOGIYA1,imgs:[IMG_GOGIYA1,IMG_GOGIYA2,IMG_GOGIYA3],
+  files:["고기야_홀오픈_1_전체.jpg","고기야_홀오픈_2_소시지세팅.jpg","고기야_홀오픈_3_영업중작업.jpg"],
+  ko:"🥩 최우영고기야 홀 오픈 방법\n\n[시작 준비·청소]\n1. 샐러드바 칸별 뚜껑 열기\n2. 주방 제빙기 상판 닦기\n3. 커팅기 주변 가구·쟁반에 튄 것 닦기\n4. 홀 전체 바닥 쓸기 → 후문부터 7번~1번 테이블을 거쳐 주방 입구까지 바닥 닦기\n\n[카트·냉장고 준비]\n5. 중형 카트 반찬 준비\n  · 상판: 3구 반찬 접시 8개 (무생채·알고추·씨앗젓갈)\n  · 중판: 김치 접시 8개\n  · 쌈장 소스접시 10개\n6. 소형 카트 소시지 준비 (상판 8개 + 중판 8개)\n  · 샐러드바에 소시지 직사각 1판 세팅\n\n[상차림·포장 준비]\n7. 다른 카트에 전체 상차림 반찬·야채·물 1세트 준비\n8. 포장 야채 24개 + 24개 준비\n\n[영업 중 함께 작업]\n· 야채 작업하면서 포장하기\n· 작업하면서 홀 손님 응대하기",
+  en:"🥩 Choi Wooyoung Gogiya – Dining room opening\n\n[Start-up & cleaning]\n1. Open each salad bar lid.\n2. Wipe the top of the kitchen ice machine.\n3. Wipe splashes on furniture and trays near the slicer.\n4. Sweep the whole dining room → mop from the back entrance, past tables 7 to 1, to the kitchen entrance.\n\n[Cart & fridge prep]\n5. Set up side dishes on the medium cart\n  · Top: 8 three-section plates (radish, peppers, seeded salted seafood)\n  · Middle: 8 kimchi plates\n  · 10 small ssamjang dishes\n6. Set up sausages on the small cart (top 8 + middle 8)\n  · Place 1 rectangular sausage tray on the salad bar.\n\n[Table & packing prep]\n7. Prepare 1 full table set of side dishes, vegetables and water on another cart.\n8. Prepare 24 + 24 vegetable portions for packing.\n\n[During service]\n· Pack orders while preparing vegetables.\n· Serve guests while doing prep work."},
+
+ // ---- 마감 ----
+ {id:"kitchenpos",cat:"close",title:"① 주방포스 끄기",file:"주방포스_끄기.jpg",img:"",
+  ko:"🍳 ① 주방포스 끄기\n"+ORDER_KO+"\n\n1. 주방 주문이 모두 나갔는지 확인\n2. 주방포스를 먼저 끄기\n3. 다음 → ② 테이블오더포스 마감",
+  en:"🍳 ① Turn off kitchen POS\n"+ORDER_EN+"\n\n1. Make sure all kitchen orders are done\n2. Turn off the kitchen POS first\n3. Next → ② Table-order POS closing"},
+ {id:"tablepos",cat:"close",title:"② 테이블오더포스 마감",file:"테이블오더포스_마감.jpg",img:IMG_TABLEPOS,
+  ko:"📱 ② 테이블오더포스 마감\n"+ORDER_KO+"\n\n1. 화면 오른쪽 위 [✕] 누르기\n2. 메인메뉴에서 [부가기능] 누르기\n3. [태블릿 원격제어] 누르기\n4. 모든 태블릿이 [정상] 연결인지 확인\n5. 왼쪽 파란 메뉴에서 [마감정산] 누르기\n6. [내일 날짜 개점] 눌러 마감 완료\n→ 다음: ③ 메인포스 마감",
+  en:"📱 ② Table-order POS closing\n"+ORDER_EN+"\n\n1. Tap [✕] at the top right\n2. Main menu → tap [부가기능] (Extra functions)\n3. Tap [태블릿 원격제어] (Tablet remote control)\n4. Check every tablet shows [정상] (Connected)\n5. Left blue menu → tap [마감정산] (Closing)\n6. Tap [tomorrow's date 개점] to finish\n→ Next: ③ Main POS closing"},
+ {id:"mainpos",cat:"close",title:"③ 메인포스 마감",file:"메인포스_마감.jpg",img:IMG_MAINPOS,
+  ko:"🧾 ③ 메인포스 마감\n"+ORDER_KO+"\n\n1. 메인메뉴에서 [마감정산] 누르기\n2. 숫자 입력창 아래 [마감] 버튼 누르기\n3. 마감 확인창에서 [예] 누르기\n✅ 마감 완료",
+  en:"🧾 ③ Main POS closing\n"+ORDER_EN+"\n\n1. Main menu → tap [마감정산] (Closing)\n2. Tap the blue [마감] button under the number pad\n3. On the confirm popup, tap [예] (Yes)\n✅ Closing done"},
+ {id:"close-am",cat:"close",title:"아침 마감 방법",file:"아침_마감.jpg",img:"",
+  ko:"📌 아침 마감 방법\n이미지 순서대로 진행해 주세요.", en:"📌 Morning closing procedure\nPlease follow the steps in the image in order."},
+ {id:"close-pm",cat:"close",title:"저녁 마감 방법",file:"저녁_마감.jpg",img:"",
+  ko:"📌 저녁 마감 방법\n이미지 순서대로 진행해 주세요.", en:"📌 Evening closing procedure\nPlease follow the steps in the image in order."},
+
+ // ---- 결제 ----
+ {id:"card-pay",cat:"pay",title:"태블릿 카드 결제",file:"태블릿_카드결제_방법.jpg",img:IMG_CARD,
+  ko:"💳 테이블 태블릿 카드 결제 방법\n\n1. 장바구니에서 메뉴·수량 확인 후 빨간 [결제하기] 누르기\n2. [승인 요청] 누르기\n3. 「리더기 연결 확인중」 → 「카드를 투입구에 넣어주세요」가 뜨면 오른쪽 투입구에 카드 넣기\n   (삼성페이는 휴대폰을 리더기에 터치)\n4. 결제 완료될 때까지 카드 빼지 않기 ✅\n\n⚠️ 결제가 안 되면 (오류·멈춤·시간 초과)\n→ [취소] 또는 [✕]를 눌러 밖으로 나갔다가, 다시 [결제하기]부터 진행하세요.",
+  en:"💳 Table tablet card payment\n\n1. Check the menu and quantity in the cart, then tap the red [결제하기] (Pay)\n2. Tap [승인 요청] (Request approval)\n3. After 「Checking reader connection」, when it says 「Insert your card」, insert the card into the slot on the right\n   (Samsung Pay: touch the phone to the reader)\n4. Do not remove the card until payment is complete ✅\n\n⚠️ If payment fails (error, freeze or timeout)\n→ Tap [취소] (Cancel) or [✕] to go back out, then start again from [결제하기] (Pay)."},
+ {id:"checker-pay",cat:"pay",title:"체크기 카드 결제",file:"체크기_카드결제.jpg",img:"",
+  ko:"💳 체크기 카드 결제\n\n1. 포스에서 금액 확인 후 [카드 결제] 선택\n2. IC칩 방향 확인 후 카드 꽂기 (승인 끝날 때까지 빼지 않기)\n3. 「긁어 주세요」가 나오면 한 번만 긁기\n\n✅ 승인 확인 → 카드 돌려드리기 → 영수증 안내",
+  en:"💳 Card payment on the terminal\n\n1. Check the amount on the POS and tap [카드 결제] (Card)\n2. Insert the card chip-first. Don't remove it until approved\n3. If it says 「긁어 주세요」 (Please swipe), swipe once only\n\n✅ Confirm approval → return the card → offer the receipt"},
+ {id:"splitpay",cat:"pay",title:"① 분할 카드 결제",file:"분할카드결제_방법.jpg",img:IMG_SPLIT,
+  ko:"💳 ① 분할 카드 결제 방법\n(예: 50,000 + 30,000 + 20,000 + 10,000원 4건)\n\n카드별 금액에 맞게 순서대로 반복:\n1. 결제할 금액 입력\n2. [카드] 버튼 누르기\n3. 카드 넣기\n4. 「리딩완료」 확인\n5. 카드 빼기 (중요!)\n→ 다음 카드로 1~5 반복\n\n모든 금액 결제 후 → [영수증 출력]\n\n"+SPLIT_NOTE_KO,
+  en:"💳 ① Split card payment\n(e.g. 4 cards: 50,000 + 30,000 + 20,000 + 10,000 won)\n\nRepeat for each card, in order:\n1. Enter the amount for this card\n2. Tap [카드] (Card)\n3. Insert the card\n4. Check 「리딩완료」 (Read complete)\n5. Remove the card (important!)\n→ Repeat 1–5 with the next card\n\nAfter the full amount is paid → tap [영수증 출력] (Print receipt)\n\n"+SPLIT_NOTE_EN},
+ {id:"splitcancel",cat:"pay",title:"② 결제 취소",file:"분할결제_취소방법.jpg",img:IMG_CANCEL,
+  ko:"↩️ ② 카드 결제 취소 (분할결제 포함)\n\n준비: 결제했던 카드·폰과 영수증을 결제한 순서대로 놓기 (헷갈리면 취소가 안 될 수 있어요)\n\n1. 메인화면 [반품내역] 누르기\n2. 취소할 첫 번째 건 선택 (제일 먼저 결제한 건부터)\n3. [반품] 누르기\n4. 해당 카드 넣기 → 「리딩완료」 확인 → 카드 빼기\n   (폰결제는 휴대폰 터치)\n5. 다음 건도 2~4 순서대로 반복\n6. [반품내역]에서 모든 건이 「완료」인지 확인 ✅\n\n⚠️ 「미처리」 / 「처리 안 됨」이 뜨면: 취소할 카드가 아닐 수 있어요. 카드를 빼고 다른 카드(또는 폰)로 바꿔 다시 진행하세요.",
+  en:"↩️ ② Cancel a card payment (incl. split payments)\n\nPrepare: line up the cards/phone and receipts in the order they were paid (mixing them up can make cancellation fail)\n\n1. Main screen → tap [반품내역] (Refund history)\n2. Select the first payment (start with the earliest one)\n3. Tap [반품] (Refund)\n4. Insert that card → check 「리딩완료」 → remove the card\n   (for phone payments, tap the phone)\n5. Repeat 2–4 for the next payment, in order\n6. In [반품내역], check every row shows 「완료」 (Done) ✅\n\n⚠️ If 「미처리」/「처리 안 됨」 (Not processed) appears: it may be the wrong card. Remove it and try another card (or phone)."},
+ {id:"repay",cat:"pay",title:"③ 취소 후 재결제",file:"분할카드결제_방법.jpg",img:IMG_SPLIT,
+  ko:"🔁 ③ 취소 후 재결제\n\n먼저: ② 결제 취소에서 모든 건이 「완료」인지 꼭 확인 (이중결제 방지)\n\n재결제는 분할 카드 결제와 같아요:\n1. 결제할 금액 입력\n2. [카드] 버튼 누르기\n3. 카드 넣기 → 「리딩완료」 확인 → 카드 빼기\n4. 다음 카드로 1~3 반복\n5. 모든 금액 결제 후 [영수증 출력]\n\n"+SPLIT_NOTE_KO,
+  en:"🔁 ③ Re-pay after cancelling\n\nFirst: in ② Cancel, make sure every payment shows 「완료」 (Done) — this prevents double charging\n\nRe-paying works like a split card payment:\n1. Enter the amount\n2. Tap [카드] (Card)\n3. Insert card → check 「리딩완료」 → remove card\n4. Repeat 1–3 with the next card\n5. After the full amount → tap [영수증 출력] (Print receipt)\n\n"+SPLIT_NOTE_EN},
+ {id:"prepay-flow",cat:"pay",title:"④ 선결제 받는 방법",file:"선결제_받는방법.jpg",img:IMG_PREPAY_FLOW,
+  ko:"💰 선결제 받는 방법\n\n1. 금액 확인 후 결제\n2. 명함에 날짜·성함·금액 적기\n3. 손님께 명함 전달하고 인사\n4. 선결제 노트에 기록하고 영수증 붙이기\n\n📒 남은 금액·품목 기록\n손님이 일부만 사용하면 노트에 아래 내용을 적고 영수증을 붙여 주세요.\n· 날짜 · 성함 · 연락처\n· 남은 금액\n· 남은 품목·수량 (예: 맥주 2병)",
+  en:"💰 How to take a prepayment\n\n1. Confirm the amount and take payment\n2. Write the date, name and amount on a business card\n3. Hand the card to the guest and thank them\n4. Record it in the prepayment notebook and attach the receipt\n\n📒 Recording the remaining balance / items\nWhen the guest uses only part of it, write the following in the notebook and attach the receipt:\n· Date · Name · Phone number\n· Remaining balance\n· Remaining items and quantity (e.g. 2 bottles of beer)"},
+ {id:"prepay",cat:"pay",title:"⑤ 선결제 노트 작성법",file:"선결제_노트_작성방법.jpg",img:IMG_PREPAY_NOTE,
+  ko:"📒 선결제 노트 작성 방법\n\n1. 날짜 적기 (예: 26/8/15)\n2. 「선결제」와 성함 또는 회사이름 적기\n3. 연락처 적기\n4. 선결제 금액 적기 (예: ₩150,000)\n5. 왼쪽 칸에 결제 영수증 붙이기\n6. 노트 위쪽에 성함(회사이름) 탭 붙이기\n\n✅ 다음 방문 때 바로 찾을 수 있어요.",
+  en:"📒 How to record a prepayment in the notebook\n\n1. Write the date (e.g. 26/8/15)\n2. Write 「선결제」 (Prepayment) and the guest's name or company name\n3. Write the phone number\n4. Write the prepaid amount (e.g. ₩150,000)\n5. Attach the payment receipt in the left column\n6. Add a name (company) tab at the top of the page\n\n✅ You can find the record quickly on the next visit."},
+ {id:"prepay-photo",cat:"pay",title:"⑥ 선결제 노트 실제 예시",file:"선결제_노트_실제예시.jpg",img:IMG_PREPAY,
+  ko:"📸 선결제 노트 실제 예시\n사진처럼 날짜 → 선결제(성함 또는 회사이름) → 연락처 → 금액 순서로 적고, 왼쪽 칸에 영수증을 붙여 주세요.\n노트 위쪽 탭에 성함(회사이름)을 적어 두면 바로 찾을 수 있어요.",
+  en:"📸 Prepayment notebook — real example\nAs in the photo, write the date → 선결제 (name or company) → phone number → amount, and attach the receipt in the left column.\nWrite the name (company) on a tab at the top so it is easy to find."},
+
+ // ---- 술 주문 (초보자 교육) ----
+ {id:"drink-order",cat:"drink",title:"술 주문 시 함께 드리는 것",file:"술주문_함께드리는것.jpg",img:IMG_DRINK,
+  ko:"🍶 술 주문 시 함께 드리는 것 (초보자 교육)\n\n🍶 소주 주문 → 소주 + 소주잔\n🍺 맥주 주문 → 맥주 + 오프너 + 맥주잔\n\n※ 맥주는 오프너를 꼭 같이 가져가세요.\n※ 잔이 더 필요하면 편하게 말씀해 달라고 손님께 안내해 주세요.",
+  en:"🍶 What to bring with a drink order (beginner training)\n\n🍶 Soju (소주) → soju + soju glasses (소주잔)\n🍺 Beer (맥주) → beer + bottle opener (오프너) + beer glass (맥주잔)\n\n※ Always bring the bottle opener with beer.\n※ Tell guests they can ask for more glasses anytime."},
+
+ // ---- 초밥 ----
+ {id:"sushi-top",cat:"sushi",title:"최상초밥 구성",file:"최우영스시야_최상초밥.jpg",img:IMG_SUSHI_TOP,
+  ko:"🍣 최우영스시야 최상초밥 (17피스)\n나무판 왼쪽부터, 윗줄 → 아랫줄 순서로 담아 주세요.\n\n[윗줄 8] 광어 · 연어 · 참돔 · 참다랑어 · 홍민어 · 참치뱃살 · 게살 · 지느러미\n[아랫줄 9] 적새우 · 관자 · 전복 · 갑오징어 · 계란 · 민물장어 · 네기토로 · 성게알 · 해삼내장",
+  en:"🍣 Choi Wooyoung Sushiya – 최상초밥 set (17 pcs)\nPlace left to right: top row, then bottom row.\n\n[Top 8] 광어 · 연어 · 참돔 · 참다랑어 · 홍민어 · 참치뱃살 · 게살 · 지느러미\n[Bottom 9] 적새우 · 관자 · 전복 · 갑오징어 · 계란 · 민물장어 · 네기토로 · 성게알 · 해삼내장"},
+ {id:"sushi-geuk",cat:"sushi",title:"극상초밥 구성",file:"최우영스시야_극상초밥.jpg",img:IMG_SUSHI_GEUK,
+  ko:"🍣 최우영스시야 극상초밥 (16피스)\n나무판 왼쪽부터, 윗줄 → 아랫줄 순서로 담아 주세요.\n\n[윗줄 8] 광어 · 연어 · 참돔 · 참다랑어 · 홍민어 · 참치뱃살 · 게살 · 지느러미\n[아랫줄 8] 성게알적새우 · 관자 · 전복 · 안키모갑오징어 · 계란 · 민물장어 · 성게알 · 해삼내장\n\n※ 최상초밥과 다른 점: 적새우 위 성게알, 갑오징어 위 안키모, 네기토로 없음",
+  en:"🍣 Choi Wooyoung Sushiya – 극상초밥 set (16 pcs)\nPlace left to right: top row, then bottom row.\n\n[Top 8] 광어 · 연어 · 참돔 · 참다랑어 · 홍민어 · 참치뱃살 · 게살 · 지느러미\n[Bottom 8] 성게알적새우 · 관자 · 전복 · 안키모갑오징어 · 계란 · 민물장어 · 성게알 · 해삼내장\n\n※ Different from 최상초밥: sea urchin on the red shrimp, monkfish liver (안키모) on the cuttlefish, no 네기토로"},
+ {id:"sushi-price",cat:"sushi",title:"초밥 단품 가격표",file:"최우영스시야_초밥_단품가격.jpg",img:IMG_SUSHI_PRICE,
+  ko:"🍣 최우영스시야 초밥 단품 (1피스)\n\n광어 2,500원\n연어 2,500원\n참돔 2,500원\n참다랑어 3,000원\n홍민어 2,500원\n참치뱃살 3,000원\n게살 2,500원\n지느러미 2,500원\n적새우 2,500원\n관자 2,500원\n민물장어 2,500원\n전복 2,500원\n갑오징어 2,500원\n계란 2,500원\n네기토로 3,000원\n성게알 3,000원\n해삼내장 2,500원\n\n※ 3,000원: 참다랑어 · 참치뱃살 · 네기토로 · 성게알",
+  en:"🍣 Choi Wooyoung Sushiya – single pieces (price per piece)\n\n광어 2,500원\n연어 2,500원\n참돔 2,500원\n참다랑어 3,000원\n홍민어 2,500원\n참치뱃살 3,000원\n게살 2,500원\n지느러미 2,500원\n적새우 2,500원\n관자 2,500원\n민물장어 2,500원\n전복 2,500원\n갑오징어 2,500원\n계란 2,500원\n네기토로 3,000원\n성게알 3,000원\n해삼내장 2,500원\n\n※ 3,000 won: 참다랑어 · 참치뱃살 · 네기토로 · 성게알"},
+ {id:"salmon-sauce",cat:"sushi",title:"초밥 연어소스 추가 방법",file:"초밥_연어소스_인원별_기준.jpg",img:IMG_SALMON,
+  ko:"🍣 초밥 연어소스 추가 방법 (인원별 기준)\n한 칸 = 0.3m (약 300ml)\n\n5인분 (7인부터) → 1.8m\n6인분 (8인) → 2.1m\n7인분 (9인) → 2.4m\n8인분 (10인) → 2.7m\n9인분 (11인) → 3.0m\n\n※ 손님 수보다 2 적은 인분으로 담아 주세요.\n※ 사진처럼 통의 삼각형 눈금 높이에 맞춰 채워 주세요.",
+  en:"🍣 Sushi salmon sauce by party size\n1 mark = 0.3m (about 300ml)\n\n5 servings (from 7 people) → 1.8m\n6 servings (8 people) → 2.1m\n7 servings (9 people) → 2.4m\n8 servings (10 people) → 2.7m\n9 servings (11 people) → 3.0m\n\n※ Fill for 2 fewer servings than the number of guests.\n※ Fill up to the triangle mark on the container, as shown in the photo."},
+
+ {id:"spout-soy",cat:"sushi",title:"스파우트 간장 인원별 기준",file:"스파우트간장_인원별.jpg",img:IMG_SPOUT,
+  ko:"🍶 스파우트 간장 인원별 제공 기준\n\n• 5인분 / 6인분: 스파우트 FULL 1개\n• 7인분: 스파우트 FULL 1개 + 1인 간장 1개 (동그란 용기)\n• 8인분: 스파우트 FULL 1개 + 2인 간장 1개 (동그란 용기)\n• 9인분: 스파우트 FULL 1개 + 3인 스파우트 1개\n\n※ 연어소스는 위에 살짝 붓는 양 기준",
+  en:"🍶 Spout soy sauce by party size\n\n• 5–6 people: 1 FULL spout pouch\n• 7 people: 1 FULL spout + 1 single-serving soy cup (round)\n• 8 people: 1 FULL spout + 1 two-serving soy cup (round)\n• 9 people: 1 FULL spout + 1 three-serving spout pouch\n\n※ Salmon sauce: just a light pour on top"},
+
+ // ---- 매장 업무 ----
+ {id:"menu-pos",cat:"store",title:"메뉴 수정 후 포스 처리",file:"메뉴수정_포스처리.jpg",img:IMG_MENU,
+  ko:"📌 메뉴 수정 후 포스 정보 수신 순서\n\n① 계산대 포스: 기초정보 수신\n② 장치 모니터링 누르기\n③ 마스터수신 누르기\n④ 주방 포스: 기초정보 수신\n\n※ 계산대 포스부터 시작하고, 주방 포스까지 진행해 주세요.",
+  en:"📌 POS data download after a menu change\n\n① Cashier POS: tap Basic Data Download\n② Tap Device Monitoring\n③ Tap Master Data Download\n④ Kitchen POS: tap Basic Data Download\n\n※ Start at the cashier POS and finish at the kitchen POS."},
+ {id:"phone",cat:"store",title:"전화기 두는 방법",file:"전화기_두는_방법.jpg",img:"",
+  ko:"📌 전화기 두는 방법\n사진과 같은 위치에 두어 주세요.", en:"📌 Where to keep the phone\nPlease place it exactly as shown in the photo."},
+ {id:"phone-charge",cat:"store",title:"무선 전화기 충전",file:"무선전화기_충전.jpg",img:IMG_PHONE_CHG,
+  ko:"🔋 무선 전화기 충전!\n통화가 끝나면 전화기를 꼭 거치대에 꽂아 주세요.\n거치대 초록불이 켜지면 충전 중입니다.",
+  en:"🔋 Charge the cordless phone!\nAfter each call, always put the phone back on the charging stand.\nA green light on the stand means it is charging."},
+ {id:"phone-busy",cat:"store",title:"무선 전화기 통화중 금지",file:"무선전화기_통화중_금지.jpg",img:IMG_PHONE_BUSY,
+  ko:"📞 무선 전화기를 통화중으로 두지 마세요!\n통화중으로 두면 매장 전화가 계속 통화중이 되어 손님 전화·예약을 받을 수 없어요.\n\n✅ 통화 후 확인 3단계\n1. 빨간 종료 버튼 누르기\n2. 화면에 「통화중」이 없는지 확인\n3. 거치대에 꽂고 초록불 확인",
+  en:"📞 Never leave the cordless phone on a call!\nIf it stays on a call, the store line is busy and guests can't call or make reservations.\n\n✅ 3 checks after every call\n1. Press the red END button\n2. Check the screen no longer shows 「통화중」 (On call)\n3. Put it on the stand and check the green light"},
+ {id:"fwd-on",cat:"store",title:"전화 착신 설정",file:"전화_착신_설정.jpg",img:IMG_FWD_ON,
+  ko:"📞 전화 착신 설정 (매장 전화 → 담당자 휴대폰)\n매장 전화기에서 아래 순서대로 누르세요.\n\n1. 별표 [*] 한 번\n2. [8] 두 번\n3. 전화번호 하나씩 누르기: 0 1 0 2 7 3 2 3 7 0 3\n   (010-2732-3703)\n4. 별표 [*] 한 번 더\n\n한 줄 요약: * → 8 → 8 → 01027323703 → *\n\n✅ 확인: 개인 휴대폰으로 02-855-3430에 전화\n→ 담당자 휴대폰이 울리면 착신 설정 완료!",
+  en:"📞 Turn ON call forwarding (store phone → manager's mobile)\nPress these buttons on the store phone, in order.\n\n1. Press [*] once\n2. Press [8] twice\n3. Enter the number one digit at a time: 0 1 0 2 7 3 2 3 7 0 3\n   (010-2732-3703)\n4. Press [*] once more\n\nSummary: * → 8 → 8 → 01027323703 → *\n\n✅ Check: call 02-855-3430 from your own mobile\n→ if the manager's mobile rings, forwarding is ON!"},
+ {id:"fwd-off",cat:"store",title:"전화 착신 해제",file:"전화_착신_해제.jpg",img:IMG_FWD_OFF,
+  ko:"📵 전화 착신 해제\n무선 전화기에서 아래 순서대로 누르세요.\n\n1. 우물정자 [#] 한 번\n2. [8] 두 번\n3. 별표 [*] 한 번\n\n한 줄 요약: # → 8 → 8 → *\n\n✅ 해제 후 매장 전화가 다시 매장에서 울리는지 확인해 주세요.",
+  en:"📵 Turn OFF call forwarding\nPress these buttons on the cordless phone, in order.\n\n1. Press [#] once\n2. Press [8] twice\n3. Press [*] once\n\nSummary: # → 8 → 8 → *\n\n✅ After turning it off, check that store calls ring at the store again."},
+ {id:"water-off",cat:"store",title:"물 잠금 확인",file:"물잠금_확인.jpg",img:IMG_WATER_OFF,
+  ko:"🚰 물 잠금 확인!\n수도 레버를 아래로 끝까지 내려 잠가 주세요.\n물이 한 방울도 떨어지지 않는지 꼭 확인하세요.\n\n✅ 사용 후 · 마감 전 꼭 확인",
+  en:"🚰 Check the water is off!\nPush the faucet lever all the way down.\nMake sure no water is dripping.\n\n✅ Check after every use and before closing"},
+ {id:"fridge-door",cat:"store",title:"냉장고 문 닫힘 확인",file:"냉장고문_닫힘확인.jpg",img:"",
+  ko:"🧊 냉장고 문 닫힘 확인\n\n① 물건을 꺼낸 뒤 문을 끝까지 밀어 닫아 주세요.\n② 손으로 한 번 더 눌러 꽉 닫혔는지 확인해 주세요.\n③ 문 사이에 틈이 보이면 다시 닫아 주세요.\n\n※ 문이 살짝만 열려 있어도 온도가 올라가 식재료가 상합니다.",
+  en:"🧊 Check that the fridge door is closed\n\n① After taking items out, push the door all the way shut.\n② Press it once more with your hand to make sure it is sealed.\n③ If you can see a gap, close it again.\n\n※ Even a slightly open door lets the temperature rise and spoils the food."},
+ {id:"salad-am",cat:"store",title:"아침 샐러드바 정리",file:"아침_샐러드바_정리.jpg",img:"",
+  ko:"📌 아침 샐러드바 정리 방법\n이미지 순서대로 진행해 주세요.", en:"📌 Morning salad bar setup\nPlease follow the steps in the image in order."}
+];
+const BYID=Object.fromEntries(BUILTIN.map(x=>[x.id,x]));
+
+const $=id=>document.getElementById(id);
+let items=[], cur=0, lang="ko", cat="open", editing=null;
+try{lang=localStorage.getItem("store-share-lang")||"ko"}catch(e){}
+
+// ---------- 저장 (IndexedDB): 직접 추가한 항목 + 기본 항목에 등록한 사진·수정한 설명 ----------
+let db=null;
+function openNamed(name,store){return new Promise(r=>{try{const q=indexedDB.open(name,1);q.onupgradeneeded=()=>q.result.createObjectStore(store,{keyPath:"id"});q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}})}
+function allOf(d,store){return new Promise(r=>{if(!d)return r([]);try{const q=d.transaction(store).objectStore(store).getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])}catch(e){r([])}})}
+function dbPut(o){return new Promise((r,j)=>{if(!db)return j();const t=db.transaction("items","readwrite");t.objectStore("items").put(o);t.oncomplete=r;t.onerror=j})}
+function dbDel(id){return new Promise(r=>{if(!db)return r();const t=db.transaction("items","readwrite");t.objectStore("items").delete(id);t.oncomplete=r;t.onerror=r})}
+
+// 예전 두 앱(업무 이미지 바로 공유 / 매장 교육 공유)에 저장해 둔 자료를 한 번만 옮겨오기
+async function migrateOld(){
+  try{if(localStorage.getItem("store-share-migrated"))return}catch(e){return}
+  const moved=[];
+  for(const [name,store] of [["share-guides","items"],["pos-share","items"]]){
+    let exists=true;
+    try{if(indexedDB.databases){const l=await indexedDB.databases();exists=l.some(x=>x.name===name)}}catch(e){}
+    if(!exists)continue;
+    const d=await openNamed(name,store);const rows=await allOf(d,store);if(d)d.close();
+    for(const x of rows){
+      const o={id:x.id,cat:x.cat||(BYID[x.id]?BYID[x.id].cat:"etc"),title:x.title,ko:x.ko||x.text||"",en:x.en||x.textEn||"",
+               blob:x.blob||null,file:x.file||null,user:!BYID[x.id],created:x.created||Date.now()};
+      if(!o.ko&&!o.blob)continue;
+      try{await dbPut(o);moved.push(o)}catch(e){}
+    }
+  }
+  try{localStorage.setItem("store-share-migrated","1")}catch(e){}
+  if(moved.length)setTimeout(()=>toast("예전 앱에 저장한 자료 "+moved.length+"개를 옮겨왔어요"),600);
+}
+
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,2600)}
+function imgSrc(it){return it.blob?(it._url||(it._url=URL.createObjectURL(it.blob))):(lang==="en"&&it.imgEn?it.imgEn:it.img)}
+const hasImg=it=>!!(it.blob||it.img);
+function text(it){
+  if(lang==="en"&&it.en)return it.en;
+  if(lang==="both"&&it.en)return it.ko+"\n\n— English —\n"+it.en;
+  return it.ko;
+}
+function catOf(it){return CATS.some(c=>c.id===it.cat)?it.cat:"etc"}
+
+function renderTabs(){
+  const c=CATS.find(x=>x.id===cat);$("sub").textContent=c.sub;
+  const o=$("toc");o.innerHTML="";
+  CATS.forEach(x=>{const n=items.filter(it=>catOf(it)===x.id).length;if(x.id==="etc"&&!n&&cat!=="etc")return;
+    const b=document.createElement("button");b.innerHTML=x.name+"<small>"+n+"개 자료</small>";if(x.id===cat)b.className="on";
+    b.onclick=()=>{cat=x.id;cur=items.findIndex(it=>catOf(it)===cat);render()};o.appendChild(b)});
+  const t=$("tabs");t.innerHTML="";
+  items.forEach((it,i)=>{if(catOf(it)!==cat)return;const b=document.createElement("button");b.textContent=(hasImg(it)?"":"○ ")+it.title;if(i===cur)b.className="on";b.onclick=()=>{cur=i;render()};t.appendChild(b)});
+  const a=document.createElement("button");a.className="add";a.textContent="＋ 추가";a.onclick=()=>openEdit(null);t.appendChild(a);
+  const on=t.querySelector(".on");if(on)on.scrollIntoView({inline:"center",block:"nearest"});
+}
+function render(){
+  const it=items[cur];
+  if(!it){renderTabs();$("imgBox").innerHTML=`<button class="empty" type="button"><strong>아직 자료가 없어요</strong><span>＋ 추가를 눌러 넣어주세요</span></button>`;$("imgBox").firstChild.onclick=()=>openEdit(null);$("txt").textContent="";$("edit").hidden=$("del").hidden=$("reset").hidden=true;$("hint").hidden=true;return}
+  cat=catOf(it);renderTabs();
+  const s=imgSrc(it);
+  const list=(!it.blob&&it.imgs)?it.imgs:(s?[s]:[]);
+  if(s){$("imgBox").innerHTML=list.map((u,n)=>`<img decoding="async" src="${u}" alt="${it.title.replace(/"/g,"")} ${n+1}"${n?' loading="lazy" style="border-top:6px solid var(--bg)"':''}>`).join("")+(list.length>1?`<div class="multi">📎 이미지 ${list.length}장이 함께 공유돼요</div>`:"");
+    $("imgBox").querySelectorAll("img").forEach((im,n)=>im.onclick=()=>{$("zimg").src=list[n];$("zoom").hidden=false})}
+  else{$("imgBox").innerHTML=`<button class="empty" type="button"><strong>이미지를 등록해 주세요</strong><span>사진을 한 번 등록하면 이미지와 설명이 함께 공유돼요</span></button>`;$("imgBox").firstChild.onclick=()=>openEdit(it)}
+  $("hint").hidden=!s;
+  $("txt").textContent=text(it);
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.l===lang));
+  $("edit").hidden=false;$("edit").textContent=hasImg(it)?"이미지·설명 수정":"이미지 등록";
+  $("del").hidden=!it.user;
+  $("reset").hidden=!(it.override&&BYID[it.id]);
+  try{localStorage.setItem("store-share-tab",it.id)}catch(e){}
+  setTimeout(()=>items.forEach(x=>{if(catOf(x)!==cat||x.blob)return;(x.imgs||[x.img]).forEach(u=>{if(u&&!prefetched[u]){prefetched[u]=1;const im=new Image();im.src=u}})}),400);
+}
+const prefetched={};
+
+// ---------- 공유 ----------
+async function toJpeg(b){
+  if(!b||b.type==="image/jpeg")return b;
+  try{const bmp=await createImageBitmap(b);const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;
+    const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(bmp,0,0);
+    const o=await new Promise(r=>c.toBlob(r,"image/jpeg",0.92));return o||b}catch(e){return b}
+}
+async function blobOf(it,src){let b;if(it.blob&&!src)b=it.blob;else{const r=await fetch(src||imgSrc(it));b=await r.blob()}return await toJpeg(b)}
+async function filesOf(it){
+  const nm=it.file||(it.title.replace(/\s+/g,"_")+".jpg");
+  if(!it.blob&&it.imgs){const bs=await Promise.all(it.imgs.map(u=>blobOf(it,u)));return bs.map((b,n)=>new File([b],(it.files&&it.files[n])||(it.title.replace(/\s+/g,"_")+"_"+(n+1)+".jpg"),{type:"image/jpeg"}))}
+  if(!it.blob&&it.imgEn&&lang==="both"){const a=await blobOf(it,it.img),b=await blobOf(it,it.imgEn);return [new File([a],nm,{type:"image/jpeg"}),new File([b],it.fileEn||"English.jpg",{type:"image/jpeg"})]}
+  const b=await blobOf(it);return [new File([b],(!it.blob&&lang==="en"&&it.imgEn&&it.fileEn)||nm,{type:b.type||"image/jpeg"})]
+}
+$("share").onclick=async()=>{
+  const it=items[cur];if(!it)return;const t=text(it);
+  try{
+    if(hasImg(it)){
+      let fs=await filesOf(it);
+      if(fs.length>1&&!(navigator.canShare&&navigator.canShare({files:fs})))fs=[fs[0]];
+      if(navigator.canShare&&navigator.canShare({files:fs})){
+        try{await navigator.clipboard.writeText(t)}catch(e){}
+        await navigator.share({files:fs,text:t,title:it.title});return;
+      }
+    }
+    if(navigator.share){await navigator.share({text:t,title:it.title});if(hasImg(it))toast("이미지는 길게 눌러 저장해 함께 보내주세요");return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(t)}catch(e){}
+  toast(hasImg(it)?"설명 복사됨 · 이미지는 길게 눌러 저장해 보내주세요":"설명을 복사했어요");
+};
+$("copy").onclick=async()=>{if(!items[cur])return;try{await navigator.clipboard.writeText(text(items[cur]));toast("설명을 복사했어요")}catch(e){toast("복사가 막혀 있어요. 글을 길게 눌러 복사해 주세요")}};
+document.querySelectorAll("#seg button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;try{localStorage.setItem("store-share-lang",lang)}catch(e){}render();if(lang!=="ko"&&items[cur]&&!items[cur].en)toast("이 항목은 영어 설명이 없어 한국어로 보냅니다")});
+$("zx").onclick=()=>$("zoom").hidden=true;
+
+// ---------- 추가 · 수정 ----------
+async function shrink(file){
+  try{const bmp=await createImageBitmap(file);const max=1600,k=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+    const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.imageSmoothingQuality="high";g.drawImage(bmp,0,0,c.width,c.height);
+    let out=await new Promise(r=>c.toBlob(b=>r(b),"image/webp",0.85));
+    if(!out||out.type!=="image/webp")out=await new Promise(r=>c.toBlob(b=>r(b),"image/jpeg",0.85));
+    return (out&&out.size<file.size)?out:file;}catch(e){return file}
+}
+function openEdit(it){
+  editing=it;
+  $("dTitle").textContent=it?it.title+" 수정":"새 항목 추가";
+  $("fCat").value=it?catOf(it):cat;
+  $("fTitle").value=it?it.title:"";$("fKo").value=it?it.ko:"";$("fEn").value=it?(it.en||""):"";$("fImg").value="";
+  const p=$("fPrev");p.hidden=!(it&&hasImg(it));if(it&&hasImg(it))p.src=imgSrc(it);
+  $("dlg").showModal();
+}
+$("edit").onclick=()=>items[cur]&&openEdit(items[cur]);
+$("fImg").onchange=e=>{const f=e.target.files[0];if(!f)return;const p=$("fPrev");p.src=URL.createObjectURL(f);p.hidden=false};
+$("fCancel").onclick=()=>$("dlg").close();
+$("fSave").onclick=async()=>{
+  const title=$("fTitle").value.trim(),f=$("fImg").files[0],ko=$("fKo").value.trim(),en=$("fEn").value.trim();
+  if(!title||!ko){toast("제목과 한국어 설명은 꼭 넣어주세요");return}
+  const base=editing||{id:"u"+Date.now(),user:true,created:Date.now()};
+  const o={id:base.id,cat:$("fCat").value,title,ko,en,user:!!base.user,created:base.created||Date.now(),override:!base.user,
+           blob:base.blob||null,file:base.file||null};
+  if(f){o.blob=await shrink(f);o.file=title.replace(/\s+/g,"_")+".jpg"}
+  try{await dbPut(o)}catch(e){toast("이 기기에서는 저장이 안 돼요(이번만 보여요)")}
+  const merged={...(BYID[o.id]||{}),...o};if(!o.blob)delete merged.blob;
+  const i=items.findIndex(x=>x.id===o.id);
+  if(i>=0){if(items[i]._url)URL.revokeObjectURL(items[i]._url);items[i]=merged;cur=i}else{items.push(merged);cur=items.length-1}
+  $("dlg").close();render();toast("저장했어요");
+};
+$("del").onclick=async()=>{const it=items[cur];if(!it.user||!confirm(`"${it.title}" 항목을 삭제할까요?`))return;await dbDel(it.id);items.splice(cur,1);cur=items.findIndex(x=>catOf(x)===cat);render()};
+$("reset").onclick=async()=>{const it=items[cur];if(!BYID[it.id]||!confirm("등록한 사진·수정한 설명을 지우고 기본값으로 되돌릴까요?"))return;await dbDel(it.id);items[cur]={...BYID[it.id]};render();toast("기본값으로 되돌렸어요")};
+
+$("fCat").innerHTML=CATS.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+
+// ---------- 교육 사진첩 (휴대폰 사진첩에 저장 · 불러와 교육, 서버 저장 없음) ----------
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const FONT='"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
+const slug=t=>t.replace(/[^가-힣A-Za-z0-9]+/g,"");
+let eduFilesReady=null, eduPos=0;
+function loadImg(u){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=u})}
+function wrapLines(g,txt,max){
+  const out=[];
+  for(const para of txt.split("\n")){
+    if(!para){out.push("");continue}
+    let line="";
+    for(const ch of para){
+      const t=line+ch;
+      if(g.measureText(t).width>max&&line){const sp=line.lastIndexOf(" ");
+        if(sp>line.length*0.6){out.push(line.slice(0,sp));line=line.slice(sp+1)+ch}else{out.push(line);line=ch}}
+      else line=t;
+    }
+    out.push(line);
+  }
+  return out;
+}
+// 이미지 + 제목 띠 + 설명 글을 한 장으로 (1080px, 저용량 JPEG)
+async function eduCard(it,src,head,withText){
+  const W=1080,P=48,HB=100,LH=50,img=await loadImg(src);
+  const ih=Math.round(img.naturalHeight*W/img.naturalWidth);
+  const c=document.createElement("canvas"),g=c.getContext("2d");
+  g.font="600 34px "+FONT;
+  const lines=withText?wrapLines(g,text(it),W-P*2):[];
+  const th=withText?P*2+lines.length*LH:0;
+  c.width=W;c.height=HB+ih+th;
+  g.fillStyle="#1B3A8C";g.fillRect(0,0,W,HB);
+  g.fillStyle="#fff";g.font="800 40px "+FONT;g.textBaseline="middle";g.fillText(head,P,HB/2,W-P*2);
+  g.drawImage(img,0,HB,W,ih);
+  if(withText){g.fillStyle="#fff";g.fillRect(0,HB+ih,W,th);g.fillStyle="#141a2b";g.font="600 34px "+FONT;g.textBaseline="top";
+    lines.forEach((l,n)=>g.fillText(l,P,HB+ih+P+n*LH))}
+  return await new Promise(r=>c.toBlob(r,"image/jpeg",0.84));
+}
+async function makeEduFiles(withText,onStep){
+  const list=[];let no=0;
+  for(const c of CATS)for(const it of items){if(catOf(it)!==c.id||!hasImg(it))continue;no++;
+    const srcs=(!it.blob&&it.imgs)?it.imgs:[imgSrc(it)];
+    srcs.forEach((u,k)=>list.push({it,u,no,k,n:srcs.length,cat:c.name}))}
+  const files=[];
+  for(let i=0;i<list.length;i++){const x=list[i],nn=String(x.no).padStart(2,"0"),part=x.n>1?" ("+(x.k+1)+"/"+x.n+")":"";
+    try{const b=await eduCard(x.it,x.u,"교육 "+nn+" · "+x.it.title+part,withText&&x.k===x.n-1);
+      files.push(new File([b],"최우영교육_"+nn+(x.n>1?"-"+(x.k+1):"")+"_"+slug(x.cat)+"_"+slug(x.it.title)+".jpg",{type:"image/jpeg"}))}catch(e){}
+    onStep&&onStep((i+1)/list.length)}
+  return files;
+}
+function eduSaveLabel(){
+  const f=eduFilesReady;if(!f)return "사진 만들기";
+  if(isIOS){const end=Math.min(eduPos+10,f.length);return eduPos>=f.length?"✅ 저장 완료 · 다시 만들기":"📥 사진첩에 저장 ("+(eduPos+1)+"~"+end+" / "+f.length+"장)"}
+  return eduPos>=f.length?"✅ 저장 완료 · 다시 만들기":"📥 사진첩에 저장 ("+f.length+"장)";
+}
+function eduPaint(){
+  $("eduSave").textContent=eduSaveLabel();
+  $("eduLang").textContent="설명 언어: "+({ko:"한국어",both:"한국어+English",en:"English"}[lang])+" (화면 아래 언어 버튼과 같아요)";
+  $("eduHow").textContent=isIOS?"공유창에서 「이미지 저장」을 누르면 사진 앱에 들어가요. 사진 앱에서 앨범 「최우영교육」을 만들어 모아두세요. (10장씩 나눠 저장)"
+    :"갤러리의 「Download(다운로드)」 앨범에 저장돼요. 「여러 파일 다운로드」를 물으면 허용해 주세요. 갤러리에서 「최우영교육」 앨범으로 옮겨 두면 편해요.";
+}
+$("eduOpen").onclick=()=>{eduPaint();$("eduDlg").showModal()};
+$("eduClose").onclick=()=>$("eduDlg").close();
+$("eduText").onchange=()=>{eduFilesReady=null;eduPos=0;eduPaint()};
+$("eduSave").onclick=async()=>{
+  const btn=$("eduSave");
+  if(!eduFilesReady||eduPos>=eduFilesReady.length){
+    btn.disabled=true;btn.textContent="사진 만드는 중…";$("eduProg").hidden=false;
+    eduFilesReady=await makeEduFiles($("eduText").checked,p=>$("eduProg").firstChild.style.width=Math.round(p*100)+"%");
+    eduPos=0;btn.disabled=false;$("eduProg").hidden=true;eduPaint();
+    toast(eduFilesReady.length+"장 준비 완료 · 저장 버튼을 눌러주세요");return;
+  }
+  const f=eduFilesReady;
+  if(isIOS&&navigator.canShare){
+    const part=f.slice(eduPos,eduPos+10);
+    try{if(navigator.canShare({files:part})){await navigator.share({files:part});eduPos+=part.length;eduPaint();return}}
+    catch(e){if(e&&e.name==="AbortError")return}
+  }
+  for(let i=eduPos;i<f.length;i++){const a=document.createElement("a");a.href=URL.createObjectURL(f[i]);a.download=f[i].name;document.body.appendChild(a);a.click();a.remove();
+    await new Promise(r=>setTimeout(r,350))}
+  eduPos=f.length;eduPaint();toast("사진첩(다운로드 앨범)에 저장했어요");
+};
+
+// 불러와 교육하기: 사진은 이 화면에서만 보고, 어디에도 저장하지 않아요
+let eduList=[],eduI=0;
+function matchItem(name){const m=name.match(/^최우영교육_\d+(?:-\d+)?_[^_]*_(.+)\.\w+$/);if(!m)return null;return items.find(it=>slug(it.title)===m[1])||null}
+function eduShow(){
+  const x=eduList[eduI];if(!x)return;
+  speechSynthesis&&speechSynthesis.cancel();
+  $("eImg").src=x.url;$("eNo").textContent=(eduI+1)+" / "+eduList.length;
+  const it=matchItem(x.f.name);
+  $("eTxt").hidden=!it;if(it)$("eTxt").textContent=text(it);
+  $("eSay").disabled=!(it&&"speechSynthesis" in window);
+  $("ePrev").disabled=eduI===0;$("eNext").disabled=eduI===eduList.length-1;
+  $("eBody").scrollTop=0;
+}
+$("eduPick").onchange=e=>{
+  const fs=[...e.target.files].sort((a,b)=>a.name.localeCompare(b.name,"ko",{numeric:true}));e.target.value="";
+  if(!fs.length)return;
+  eduList.forEach(x=>URL.revokeObjectURL(x.url));
+  eduList=fs.map(f=>({f,url:URL.createObjectURL(f)}));eduI=0;
+  $("eduDlg").close();$("edu").hidden=false;eduShow();
+};
+$("ePrev").onclick=()=>{if(eduI>0){eduI--;eduShow()}};
+$("eNext").onclick=()=>{if(eduI<eduList.length-1){eduI++;eduShow()}};
+$("eX").onclick=()=>{try{speechSynthesis.cancel()}catch(e){}$("edu").hidden=true;eduList.forEach(x=>URL.revokeObjectURL(x.url));eduList=[]};
+$("eSay").onclick=()=>{
+  const it=matchItem(eduList[eduI].f.name);if(!it)return;
+  const say=(t,l)=>{const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,""));u.lang=l;u.rate=.95;speechSynthesis.speak(u)};
+  speechSynthesis.cancel();
+  if(lang==="en"&&it.en)say(it.en,"en-US");else{say(it.ko,"ko-KR");if(lang==="both"&&it.en)say(it.en,"en-US")}
+};
+(()=>{let x0=null;const b=$("eBody");
+  b.addEventListener("touchstart",e=>{x0=e.touches[0].clientX},{passive:true});
+  b.addEventListener("touchend",e=>{if(x0===null)return;const d=e.changedTouches[0].clientX-x0;x0=null;
+    if(Math.abs(d)>70){if(d<0)$("eNext").onclick();else $("ePrev").onclick()}},{passive:true})})();
+
+// ---------- 시작 ----------
+// 기본 화면을 먼저 표시하고 저장된 자료는 뒤에서 불러옵니다.
+items=BUILTIN.map(b=>({...b}));
+try{const last=localStorage.getItem("store-share-tab");const i=items.findIndex(x=>x.id===last);cur=i>=0?i:0}catch(e){}
+render();
+(async()=>{
+  db=await openNamed("store-share","items");
+  await migrateOld();
+  const saved=await allOf(db,"items");
+  const ov=Object.fromEntries(saved.filter(x=>BYID[x.id]).map(x=>[x.id,x]));
+  items=BUILTIN.map(b=>ov[b.id]?{...b,...ov[b.id],override:true,...(ov[b.id].blob?{}:{blob:undefined})}:{...b});
+  saved.filter(x=>!BYID[x.id]).sort((a,b)=>(a.created||0)-(b.created||0)).forEach(x=>items.push({...x,user:true}));
+  let s=null;try{s=localStorage.getItem("store-share-tab")}catch(e){}
+  const i=items.findIndex(x=>x.id===s);cur=i>=0?i:0;render();
+})();
+</script>
+
+<style>#installApp{position:fixed;right:12px;top:12px;z-index:30;border:1px solid #ffffff70;border-radius:20px;background:#fff;color:#1B3A8C;font-weight:800;padding:9px 12px}#installHelp{max-width:340px;border:0;border-radius:18px;padding:24px;line-height:1.7}#installHelp::backdrop{background:#0008}</style>
+<button id="installApp" type="button">홈 화면 설치</button>
+<dialog id="installHelp"><strong>홈 화면에 추가하기</strong><p id="installHelpText"></p><button type="button" onclick="document.getElementById('installHelp').close()">확인</button></dialog>
+<script>
+(()=>{
+let pending=null;const btn=document.getElementById('installApp');
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+if(standalone())btn.hidden=true;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();pending=e;});
+window.addEventListener('appinstalled',()=>{btn.hidden=true;pending=null;});
+btn.onclick=async()=>{
+if(pending){const p=pending;pending=null;await p.prompt();await p.userChoice;return;}
+const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+document.getElementById('installHelpText').textContent=location.protocol==='file:'?'허브에 올린 HTTPS 주소를 브라우저로 연 뒤 설치해 주세요.':ios?'Safari에서 공유 버튼을 누르고 「홈 화면에 추가」를 선택해 주세요.':'Chrome 또는 Samsung Internet의 메뉴에서 「앱 설치」 또는 「홈 화면에 추가」를 선택해 주세요. 앱 안에서 연 화면이라면 외부 브라우저로 열어 주세요.';
+document.getElementById('installHelp').showModal();};
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));
+})();
+</script>
+</body>
+</html>
