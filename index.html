@@ -115,6 +115,11 @@ header{position:relative}
   <h3>② 사진첩에서 불러와 교육하기</h3>
   <p class="note">저장해 둔 교육 사진을 여러 장 골라 한 장씩 넘기며 교육해요.</p>
   <label class="big pick">📂 사진첩에서 사진 고르기<input type="file" id="eduPick" accept="image/*" multiple hidden></label>
+  <h3>③ 다른 휴대폰으로 옮기기 (백업)</h3>
+  <p class="note">직접 추가한 항목과 등록한 사진·수정한 설명을 파일 하나로 묶어요. 카톡이나 메일로 보내고, 받은 휴대폰에서 이 앱을 열어 <b>백업 불러오기</b>를 누르면 그대로 들어가요.</p>
+  <button class="big" id="bakOut" type="button">📦 백업 내보내기</button>
+  <label class="big pick">📂 백업 불러오기<input type="file" id="bakIn" hidden></label>
+  <p class="note" id="bakMsg"></p>
   <div class="drow"><button id="eduClose" type="button" style="background:#e6e9f1">닫기</button></div>
 </dialog>
 
@@ -297,6 +302,44 @@ async function migrateOld(){
   try{localStorage.setItem("store-share-migrated","1")}catch(e){}
   if(moved.length)setTimeout(()=>toast("예전 앱에 저장한 자료 "+moved.length+"개를 옮겨왔어요"),600);
 }
+
+// ---------- 백업 내보내기 / 불러오기 (다른 기기로 옮기기) ----------
+function blobToData(b){return new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.onerror=()=>r(null);f.readAsDataURL(b)})}
+async function dataToBlob(u){try{return await (await fetch(u)).blob()}catch(e){return null}}
+async function exportBackup(){
+  const msg=$("bakMsg");msg.textContent="백업 파일 만드는 중…";
+  const rows=await allOf(db,"items");
+  if(!rows.length){msg.textContent="";toast("옮길 자료가 없어요 (직접 추가·수정한 항목이 없음)");return}
+  const out=[];
+  for(const x of rows){const o={};for(const k in x){if(k==="blob"||k.startsWith("_"))continue;o[k]=x[k]}
+    if(x.blob instanceof Blob)o.blobData=await blobToData(x.blob);out.push(o)}
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  const name=`업무공유_백업_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`;
+  const json=JSON.stringify({app:"store-share",ver:1,exported:d.toISOString(),items:out});
+  const file=new File([json],name,{type:"application/json"});
+  msg.textContent=`자료 ${out.length}개 · ${(file.size/1048576).toFixed(1)}MB`;
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"매장 업무 공유 백업"});return}}
+  catch(e){if(e&&e.name==="AbortError")return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  toast("백업 파일을 다운로드했어요");
+}
+async function importBackup(f){
+  const msg=$("bakMsg");
+  let data;try{data=JSON.parse(await f.text())}catch(e){toast("백업 파일이 아니에요");return}
+  if(!data||data.app!=="store-share"||!Array.isArray(data.items)){toast("이 앱의 백업 파일이 아니에요");return}
+  msg.textContent="불러오는 중…";let n=0;
+  for(const x of data.items){if(!x||!x.id)continue;
+    const o={...x};delete o.blobData;
+    if(x.blobData){const b=await dataToBlob(x.blobData);if(b)o.blob=b}
+    try{await dbPut(o);n++}catch(e){}
+  }
+  msg.textContent=`자료 ${n}개를 불러왔어요. 화면을 새로 고칩니다…`;
+  toast(`백업 ${n}개를 불러왔어요`);
+  setTimeout(()=>location.reload(),1200);
+}
+$("bakOut").onclick=()=>exportBackup();
+$("bakIn").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)importBackup(f)};
 
 function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,2600)}
 function imgSrc(it){return it.blob?(it._url||(it._url=URL.createObjectURL(it.blob))):(lang==="en"&&it.imgEn?it.imgEn:it.img)}
