@@ -347,12 +347,12 @@ mark{background:linear-gradient(transparent 55%, #f2d98b 55%);padding:0}
 .qnote{color:#7f7a6c;letter-spacing:.3px}
 
 /* 빛나는 보석 */
-.gem{display:inline-block;vertical-align:-0.22em;overflow:visible;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--glow) 55%,transparent)) drop-shadow(0 2px 3px rgba(0,0,0,.22))}
-.gem .spk{transform-origin:78px 22px;animation:twinkle 3.2s ease-in-out infinite;opacity:0}
+.gem{display:inline-block;vertical-align:-0.22em;overflow:visible;filter:drop-shadow(0 0 3px color-mix(in srgb,var(--glow) 35%,transparent)) drop-shadow(0 1px 2px rgba(0,0,0,.18))}
+.gem .spk{transform-origin:78px 22px;animation:twinkle 7s ease-in-out infinite;opacity:0}
 @keyframes twinkle{0%,70%,100%{opacity:0;transform:scale(.3) rotate(0)}80%{opacity:1;transform:scale(1) rotate(45deg)}90%{opacity:.2;transform:scale(.6) rotate(90deg)}}
 @media (prefers-reduced-motion:reduce){.gem .spk{animation:none;opacity:.8}}
 .thumb{background:radial-gradient(circle at 50% 40%,#fffaf0 0%,#efe6d3 70%)!important}
-.thumb:not([style]) .gem{width:48px;height:48px}
+.thumb:not([style]) .gem{width:40px;height:40px}
 .thumb[style] .gem{display:none}
 .store b{display:flex;align-items:center;gap:5px}
 .store.on .gem{filter:drop-shadow(0 0 6px rgba(255,255,255,.35))}
@@ -361,6 +361,13 @@ mark{background:linear-gradient(transparent 55%, #f2d98b 55%);padding:0}
 .part .gem,.sec h2 .gem{margin-right:2px}
 .dlg h4 .gem,.shead h3 .gem{margin-right:4px}
 .qbtn .gem{filter:drop-shadow(0 0 4px #fff)}
+.cloudRow{margin-top:8px}
+.cloud{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;border:1px solid rgba(217,191,134,.4);color:#efe6d2}
+.cloud.ok{background:rgba(127,179,148,.25);border-color:#7fb394;color:#d8f0e1}
+.cloud.wait{opacity:.8}
+.cloud.err,.cloud.local{background:rgba(224,138,95,.2);border-color:#e08a5f;color:#ffd9c7}
+.cloud.ro{background:rgba(140,158,224,.2);border-color:#8c9ee0;color:#dfe5ff}
+.sec h2 .gem{margin-right:4px}.lvl{display:inline-flex;align-items:center;justify-content:center;gap:4px}.lvhead .gem{margin-right:2px}
 </style>
 </head>
 <body>
@@ -378,6 +385,7 @@ mark{background:linear-gradient(transparent 55%, #f2d98b 55%);padding:0}
     <div class="quick" id="quick">
       <button data-q="오픈"><i data-g="7,0,14"></i>오픈</button><button data-q="위생"><i data-g="5,0,14"></i>위생</button><button data-q="선입선출"><i data-g="4,1,14"></i>선입선출</button><button data-q="전화"><i data-g="1,4,14"></i>전화</button><button data-q="근무태도"><i data-g="0,2,14"></i>근무 규칙</button><button data-q="마감"><i data-g="3,7,14"></i>마감</button>
     </div>
+    <div class="cloudRow"><span id="cloudPill" class="cloud local"></span></div>
     <div class="scope" id="scope" style="display:none">
       <button data-s="all" class="on">모든 매장에서</button>
       <button data-s="cur">선택한 매장만</button>
@@ -391,12 +399,12 @@ mark{background:linear-gradient(transparent 55%, #f2d98b 55%);padding:0}
 
   <div class="tools">
     <h2><i data-g="11,0,20"></i> 다른 기기와 주고받기</h2>
-    <p>보내기 → 카톡 등으로 백업 파일을 보내고, 다른 기기에서 받기 → 그 파일을 고르면 같은 내용이 그대로 들어가요. (매장 안내 주소도 함께)</p>
+    <p><b>보내기</b> → 카톡 등으로 파일을 보내고, 다른 기기에서 <b>불러오기</b> → 그 파일을 고르면 바로 똑같이 적용돼요. (매장 안내 주소도 함께)</p>
     <div class="row">
-      <button id="expBtn"><i data-g="10,6,16"></i> 백업 보내기</button>
-      <button id="impBtn"><i data-g="1,0,16"></i> 백업 받기</button>
+      <button id="expBtn">📤 보내기</button>
+      <button id="impBtn">📥 불러오기</button>
     </div>
-    <button id="undoBtn">↩️ 받기 전 상태로 되돌리기</button>
+    <button id="undoBtn">↩️ 불러오기 전으로 되돌리기</button>
     <input type="file" id="impFile" accept=".json,application/json,text/plain,*/*" hidden>
   </div>
 </div>
@@ -472,11 +480,17 @@ function gemSVG(color,shape,size=40,spark=true){
 }
 const gemOf=g=>gemSVG(g%12,(5*g+Math.floor(g/12))%8);   // 96가지 서로 다른 조합
 const PART_GEM={공통:[1,0],홀:[2,1],주방:[0,2]};
-const pIcon=(p,sz=18)=>PART_GEM[p]?gemSVG(PART_GEM[p][0],PART_GEM[p][1],sz,false):'';
+const pIcon=()=>'';   // (버튼에는 보석 없음)
+// 대제목 보석: 공통 사파이어 · 홀 아쿠아마린 · 주방 자수정 · 전체 매장 공통 다이아
+const HEAD_GEM={공통:[1,0],홀:[5,1],주방:[3,7],전체:[10,6]};
+const hGem=k=>{const g=HEAD_GEM[k]||[10,6];return gemSVG(g[0],g[1],22,true);};
+// 상·중·하 보석: 하 에메랄드 · 중 토파즈 · 상 루비 (단계 색과 같은 계열)
+const LV_GEM={하:[2,0],중:[4,1],상:[0,2]};
+const lvGem=(l,sz=16)=>{const g=LV_GEM[l];return g?gemSVG(g[0],g[1],sz,false):'';};
 const STORE_GEM={공통:[10,6],구로:[1,0],여의도:[5,4],가산:[0,2],영등포:[2,1],종로:[3,7]};
-const sIcon=(id,sz=18)=>{const g=STORE_GEM[id]||[10,6];return gemSVG(g[0],g[1],sz,false)};
-const gi=(c,s,sz=18,spark=false)=>gemSVG(c,s,sz,spark);
-function hydrateGems(root=document){ root.querySelectorAll('i[data-g]').forEach(el=>{const [c,s,z]=el.dataset.g.split(',').map(Number);el.outerHTML=gemSVG(c,s,z||18,false)}); }
+const sIcon=()=>'';  // 매장 보석 표시 안 함
+const gi=()=>'';     // 버튼·창 보석 표시 안 함
+function hydrateGems(root=document){ root.querySelectorAll('i[data-g]').forEach(el=>el.remove()); }
 
 /* 신입교육 단계: 하(기초) → 중(실무) → 상(숙련) 순서로 배워요 */
 const LEVELS = ['하','중','상'];
@@ -602,14 +616,14 @@ function renderTabs(){
     return `<button class="store ${s.id===curStore?'on':''}" data-s="${s.id}"><b>${sIcon(s.id,15)} ${s.name}</b><span>${s.sub} · ${n}</span></button>`;
   }).join('');
   $('#parts').innerHTML=PARTS.map(p=>`<button class="part ${p===curPart?'on':''}" data-p="${p}">${p==='전체'?'전체':(pIcon(p,16)+' '+p)}</button>`).join('');
-  $('#levels').innerHTML='<span class="lbl">신입교육</span>'+['전체',...LEVELS].map(l=>`<button class="lvl ${l==='전체'?'':'lv-'+l} ${l===curLevel?'on':''}" data-l="${l}">${l==='전체'?'전체 단계':LEVEL_NAME[l]}</button>`).join('');
+  $('#levels').innerHTML='<span class="lbl">신입교육</span>'+['전체',...LEVELS].map(l=>`<button class="lvl ${l==='전체'?'':'lv-'+l} ${l===curLevel?'on':''}" data-l="${l}">${l==='전체'?'전체 단계':lvGem(l,15)+' '+LEVEL_NAME[l]}</button>`).join('');
 }
 function card(it,showStore){
   const img=it.images&&it.images[0];
   const sName=(STORES.find(s=>s.id===it.store)||{}).name||it.store;
   const preview=(it.content||'').replace(/\n/g,' ');
   return `<button class="item" data-id="${esc(it.id)}">
-    <div class="thumb" ${img?`style="background-image:url('${img.data}')"`:''}>${img?'':gemOf(it.gem||0)}</div>
+    ${img?`<div class="thumb" style="background-image:url('${img.data}')"></div>`:''}
     <div style="flex:1;min-width:0">
       <div class="t">${q?hl(it.title,q):esc(it.title)}</div>
       <div class="d">${q?hl(preview,q):esc(preview)}</div>
@@ -622,13 +636,13 @@ function renderList(){
   const byPart = arr => byLv(curPart==='전체'?arr:arr.filter(i=>i.part===curPart));
   const sortT = arr => arr.sort((a,b)=>lvOrder(a.level)-lvOrder(b.level)||a.title.localeCompare(b.title,'ko'));
   // 단계(하→중→상)별 소제목을 붙여서 카드 그리기
-  const withLv = (arr,showStore) => { let last=null; return arr.map(i=>{const l=i.level||'하'; const h=(curLevel==='전체'&&l!==last)?`<div class="lvhead"><span class="bdg lv lv-${l}">${l}</span>${LEVEL_NAME[l]}</div>`:''; last=l; return h+card(i,showStore)}).join('') };
+  const withLv = (arr,showStore) => { let last=null; return arr.map(i=>{const l=i.level||'하'; const h=(curLevel==='전체'&&l!==last)?`<div class="lvhead">${lvGem(l,18)}<span class="bdg lv lv-${l}">${l}</span>${LEVEL_NAME[l]}</div>`:''; last=l; return h+card(i,showStore)}).join('') };
 
   if(q){
     let pool = scope==='cur' ? items.filter(i=>i.store===curStore||i.store==='공통') : items;
     let res = byPart(pool.filter(i=>matches(i,q))).sort((a,b)=>score(b,q)-score(a,q)||lvOrder(a.level)-lvOrder(b.level)||a.title.localeCompare(b.title,'ko'));
     L.innerHTML = `<div class="sec"><h2>${gi(1,0,18)} “${esc(q)}” 검색 결과 <span class="n">${res.length}</span></h2>${
-      res.length? res.map(i=>card(i,true)).join('') : `<div class="empty"><b>${gemSVG(3,3,52)}</b>찾는 교육이 없어요.<br>다른 단어나 초성(예: ㅁㄱ)으로 검색해 보세요.</div>`}</div>`;
+      res.length? res.map(i=>card(i,true)).join('') : `<div class="empty">찾는 교육이 없어요.<br>다른 단어나 초성(예: ㅁㄱ)으로 검색해 보세요.</div>`}</div>`;
     return;
   }
 
@@ -638,15 +652,15 @@ function renderList(){
   parts.forEach(p=>{
     const arr=sortT(byLv(items.filter(i=>i.store===curStore&&i.part===p)));
     if(!arr.length && curPart==='전체') return;
-    html+=`<div class="sec"><h2>${pIcon(p)} ${store.name} · ${p} <span class="n">${arr.length}</span></h2>${
+    html+=`<div class="sec"><h2>${hGem(p)} ${store.name} · ${p} <span class="n">${arr.length}</span></h2>${
       arr.length?withLv(arr):`<div class="empty" style="padding:20px">아직 등록된 교육이 없어요.</div>`}</div>`;
   });
   // 매장 선택 시 전체 공통 교육도 함께 보여주기
   if(curStore!=='공통'){
     const com=sortT(byPart(items.filter(i=>i.store==='공통')));
-    if(com.length) html+=`<div class="sec"><h2>📘 전체 매장 공통 <span class="n">${com.length}</span></h2>${withLv(com,true)}</div>`;
+    if(com.length) html+=`<div class="sec"><h2>${hGem('전체')} 전체 매장 공통 <span class="n">${com.length}</span></h2>${withLv(com,true)}</div>`;
   }
-  L.innerHTML = html || `<div class="empty"><b>${gemSVG(10,0,52)}</b>등록된 교육이 없어요.<br>아래 사진으로 바로 올리기 버튼을 누르세요.</div>`;
+  L.innerHTML = html || `<div class="empty">등록된 교육이 없어요.<br>아래 사진으로 바로 올리기 버튼을 누르세요.</div>`;
 }
 /* ===================== 매장별 찾아가기 ===================== */
 let storeInfo={};   // {구로:{q:'검색어', addr:'주소'}}
@@ -913,33 +927,25 @@ async function importBackup(e){
   const cur=await DB.all(), ids=new Set(cur.map(i=>i.id));
   const nNew=list.filter(i=>!ids.has(i.id)).length, nOver=list.length-nNew;
   const nGone=cur.filter(i=>!list.some(x=>x.id===i.id)).length;
-  dialog(`<h4>${gi(1,0,22)} 백업 받기</h4>
-    <div class="bk">${gi(11,1,16)} ${esc(f.name)}<br>교육 <b>${list.length}개</b>${data.at?` · ${new Date(data.at).toLocaleString('ko-KR')} 백업`:''}<br>이 기기: 교육 ${cur.length}개</div>
-    <button class="choice main" id="bkSame"><b>${gi(2,0,16)} 똑같이 맞추기 (추천)</b><span>보낸 기기와 내용이 완전히 같아져요. 같은 이름은 덮어쓰고, 백업에 없는 교육 ${nGone}개는 빠져요.</span></button>
-    <button class="choice" id="bkMerge"><b>${gi(4,7,16)} 합치기</b><span>이 기기 교육은 그대로 두고 새 교육 ${nNew}개 추가, 같은 이름 ${nOver}개는 덮어써요.</span></button>
-    <button class="btn ghost" style="width:100%" data-dlg-close>취소</button>`);
-  const run=async same=>{
-    await DB.setMeta('undo',{at:Date.now(),items:cur,storeInfo});   // 되돌리기용 저장
-    if(same){ for(const i of cur) if(!list.some(x=>x.id===i.id)) await DB.del(i.id); storeInfo=data.storeInfo||{}; }
-    else storeInfo={...storeInfo,...(data.storeInfo||{})};
-    for(const it of list) await DB.put(it);
-    await DB.setMeta('storeInfo',storeInfo);
-    hide('#dlgOv'); await load(); showUndo();
-    toast(same?`똑같이 맞췄어요 (교육 ${list.length}개)`:`새로 ${nNew}개 · 덮어쓰기 ${nOver}개`);
-  };
-  $('#bkSame').onclick=()=>run(true);
-  $('#bkMerge').onclick=()=>run(false);
+  // 고르는 창 없이 바로 적용: 보낸 기기와 똑같이 맞춤 (불러온 내용이 가장 최신으로 저장됨)
+  const now=Date.now();
+  await DB.setMeta('undo',{at:now,items:cur,storeInfo});   // 되돌리기용 저장
+  for(const i of cur) if(!list.some(x=>x.id===i.id)) await DB.del(i.id);
+  for(const it of list) await DB.put({...it,updated:now});
+  storeInfo=data.storeInfo||{}; await DB.setMeta('storeInfo',storeInfo);
+  await load(); showUndo();
+  toast(`불러오기 완료 · 교육 ${list.length}개 적용${nGone?` (빠진 교육 ${nGone}개)`:''}`);
 }
 async function showUndo(){ const u=await DB.getMeta('undo'); $('#undoBtn').style.display=u?'block':'none'; }
 async function undoImport(){
   const u=await DB.getMeta('undo'); if(!u) return;
-  dialog(`<h4>되돌릴까요?</h4><p>백업 받기 전 상태(교육 ${u.items.length}개)로 돌아가요.</p>
+  dialog(`<h4>되돌릴까요?</h4><p>불러오기 전 상태(교육 ${u.items.length}개)로 돌아가요.</p>
     <div class="acts"><button class="btn ghost" data-dlg-close>취소</button><button class="btn" id="unOk">되돌리기</button></div>`);
   $('#unOk').onclick=async()=>{
     for(const i of await DB.all()) await DB.del(i.id);
-    for(const i of u.items) await DB.put(i);
+    for(const i of u.items) await DB.put({...i,updated:Date.now()});
     storeInfo=u.storeInfo||{}; await DB.setMeta('storeInfo',storeInfo); await DB.setMeta('undo',null);
-    hide('#dlgOv'); await load(); showUndo(); toast('받기 전 상태로 되돌렸어요');
+    hide('#dlgOv'); await load(); showUndo(); toast('불러오기 전으로 되돌렸어요');
   };
 }
 
@@ -991,36 +997,108 @@ async function assignGems(list){
     while(used.has(g)) g++; it.gem=g; used.add(g); await DB.put(it);
   }
 }
+
+/* ===================== ☁ 서버 저장 (Claude 링크로 열 때) =====================
+   교육 내용을 서버에 저장 → 어느 기기·브라우저에서 열어도 같은 내용.
+   이 기기에도 같이 저장(IndexedDB)해서 인터넷이 없을 때도 보임. 사진은 따로 저장. */
+const SEED_MAP=(()=>{const m={};[...SEED,...SEED2,...SEED3,...SEED4].forEach(x=>{m[keyOf(x.store,x.part,x.title)]=x;});return m;})();
+// 처음 들어있던 기본 교육을 손대지 않았으면 '아주 오래된 것'으로 취급 → 다른 기기에서 고친 내용을 덮어쓰지 않음
+const eff=it=>{const sd=SEED_MAP[it.id];if(sd&&sd.content===it.content&&sd.title===it.title&&!(it.images&&it.images.length)&&(it.level||'하')===(sd.level||'하'))return 1;return it.updated||1;};
+const Cloud=(()=>{
+  let cdb=null,on=false,firstDone=false,ro=false,timer=null,chain=Promise.resolve(),running=false;const Q=new Map(),srvUpd=new Map();
+  let upl=new Set();try{upl=new Set(JSON.parse(localStorage.getItem('cwy-tr-up')||'[]'))}catch(_){}
+  const saveUpl=()=>{try{localStorage.setItem('cwy-tr-up',JSON.stringify([...upl].slice(-5000)))}catch(_){}};
+  const h53=(str)=>{let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}
+    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36);};
+  const key=id=>'k'+h53(id)+'-'+id.length, imgKey=d=>'m'+h53(d)+'-'+d.length;
+  function setStatus(st){const el=document.getElementById('cloudPill');if(!el)return;el.className='cloud '+st;
+    el.textContent={local:'💾 이 기기에만 저장돼요 · 백업으로 옮기기',wait:'☁ 서버 연결 중…',ok:'☁ 서버에 저장됨 · 어느 기기에서나 같아요',ro:'☁ 보기 전용 (올리기는 이 기기에만)',err:'☁ 서버 연결 안 됨 · 이 기기에 저장 중'}[st]||'';}
+  function shrink(d){if(!d||d.length<=200000)return Promise.resolve(d);return new Promise(res=>{const im=new Image();im.onload=()=>{let q=.72,max=1100,out=d;
+    for(let k=0;k<8;k++){const sc=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);out=c.toDataURL('image/jpeg',q);if(out.length<=200000)break;max=Math.round(max*.8);q=Math.max(.5,q-.06);}res(out);};im.onerror=()=>res(d);im.src=d;});}
+  const body=it=>({id:it.id,store:it.store,part:it.part,level:it.level||'하',title:it.title,content:it.content||'',tags:it.tags||[],gem:Number.isInteger(it.gem)?it.gem:null,
+    updated:eff(it),images:(it.images||[]).filter(x=>x.ref).map(x=>({name:x.name||'',ref:x.ref})),deleted:false});
+  async function doPush(it){let changed=false;
+    for(const im of (it.images||[])){if(!im.data)continue;if(!im.ref){im.ref=imgKey(im.data);changed=true;}
+      if(!upl.has(im.ref)){await cdb.doc('imgs/'+im.ref).set({data:await shrink(im.data)});upl.add(im.ref);saveUpl();}}
+    if(changed)await DB._put(it);
+    await cdb.doc('items/'+key(it.id)).set(body(it));}
+  async function doDel(id,refs){await cdb.doc('items/'+key(id)).set({id,deleted:true,updated:Date.now()});
+    const used=new Set();(await DB.all()).forEach(i=>(i.images||[]).forEach(x=>x.ref&&used.add(x.ref)));
+    for(const r of refs||[])if(!used.has(r)){try{await cdb.doc('imgs/'+r).delete();upl.delete(r);}catch(_){}}saveUpl();}
+  async function run(){if(running||!on||ro||!firstDone)return;running=true; // 서버 내용을 먼저 받은 뒤에만 올림
+    try{while(Q.size){const [k,job]=Q.entries().next().value;Q.delete(k);
+      if(!job.del&&(srvUpd.get(job.it.id)||0)>=eff(job.it)&&!job.force)continue; // 서버가 같거나 더 새것이면 안 올림
+      try{if(job.del)await doDel(job.id,job.refs);else{await doPush(job.it);srvUpd.set(job.it.id,eff(job.it));}}
+      catch(e){const c=e&&e.code;if(c==='invalid_argument'&&!job.del&&!job.tried){job.tried=1;ro=true;setStatus('ro');}
+        else if(c==='quota_exceeded'){toast('서버 저장 공간이 가득 찼어요. 오래된 사진을 지워 주세요');}
+        else if(c==='unavailable'&&!job.tried){job.tried=1;Q.set(k,job);await new Promise(r=>setTimeout(r,1500+Math.random()*1500));}}}}
+    finally{running=false;}}
+  function push(it){if(!it||!it.id)return;Q.set(it.id,{it});if(on)run();}
+  function del(id,refs){Q.set(id,{del:true,id,refs});if(on)run();else{try{const p=JSON.parse(localStorage.getItem('cwy-tr-pdel')||'[]');p.push({id,refs});localStorage.setItem('cwy-tr-pdel',JSON.stringify(p.slice(-200)))}catch(_){}}}
+  async function pushInfo(){if(!on||ro)return;try{await cdb.doc('meta/storeInfo').set({info:storeInfo||{},updated:(await DB.getMeta('storeInfoU'))||Date.now()});}catch(_){}}
+  async function apply(snap){const local=new Map((await DB.all()).map(i=>[i.id,i]));const seen=new Set();let changed=false;
+    for(const ds of snap.docs){const d=ds.data();if(!d||!d.id)continue;seen.add(d.id);srvUpd.set(d.id,d.updated||0);const L=local.get(d.id);
+      if(d.deleted){if(L&&eff(L)<=(d.updated||0)){await DB._del(d.id);changed=true;}continue;}
+      if(!L||(d.updated||0)>eff(L)){const imgs=[];
+        for(const r of (d.images||[])){const c=L&&(L.images||[]).find(x=>x.ref===r.ref&&x.data);if(c){imgs.push(c);continue;}
+          try{const sn=await cdb.doc('imgs/'+r.ref).get();if(sn.exists){imgs.push({name:r.name,ref:r.ref,data:sn.data().data});upl.add(r.ref);}}catch(_){}}
+        const it={...d,images:imgs};delete it.deleted;if(!Number.isInteger(it.gem))delete it.gem;await DB._put(it);changed=true;}
+      else if(eff(L)>(d.updated||0))push(L);}
+    if(!snap.metadata.fromCache){if(!firstDone){firstDone=true;for(const [id,L] of local)if(!seen.has(id))push(L);saveUpl();}clearTimeout(timer);setStatus(ro?'ro':'ok');}
+    if(changed)await load();}
+  async function start(){
+    if(!(window.claude&&typeof claude.use==='function')){setStatus('local');return;}
+    setStatus('wait');timer=setTimeout(()=>{if(!firstDone)setStatus('err')},10000);
+    try{cdb=await claude.use('db');}catch(_){cdb=null;}
+    if(!cdb){clearTimeout(timer);setStatus('local');return;}
+    on=true;
+    try{const p=JSON.parse(localStorage.getItem('cwy-tr-pdel')||'[]');p.forEach(x=>Q.set(x.id,{del:true,id:x.id,refs:x.refs}));localStorage.removeItem('cwy-tr-pdel');}catch(_){}
+    cdb.collection('items').onSnapshot(snap=>{chain=chain.then(()=>apply(snap)).then(run).catch(()=>{});},e=>{clearTimeout(timer);setStatus(e&&e.code==='revoked'?'local':'err');});
+    cdb.doc('meta/storeInfo').onSnapshot(async sn=>{if(!sn.exists){if(!sn.metadata.fromCache&&storeInfo&&Object.keys(storeInfo).length)pushInfo();return;}
+      const d=sn.data(),lu=(await DB.getMeta('storeInfoU'))||0;
+      if((d.updated||0)>lu){storeInfo=d.info||{};await DB._setMeta('storeInfo',storeInfo);await DB._setMeta('storeInfoU',d.updated);renderGo();}
+      else if(lu>(d.updated||0))pushInfo();},()=>{});}
+  function install(){ // 이 기기에 저장할 때 서버에도 저장
+    DB._put=DB.put;DB._del=DB.del;DB._setMeta=DB.setMeta;
+    DB.put=async it=>{await DB._put(it);push(it);};
+    DB.del=async id=>{let it=items.find(i=>i.id===id);if(!it)it=(await DB.all()).find(i=>i.id===id);await DB._del(id);del(id,((it&&it.images)||[]).map(x=>x.ref).filter(Boolean));};
+    DB.setMeta=async(k,v)=>{await DB._setMeta(k,v);if(k==='storeInfo'){await DB._setMeta('storeInfoU',Date.now());pushInfo();}};}
+  return {start,install};
+})();
+
 async function load(){items=await DB.all();await assignGems(items);try{storeInfo=(await DB.getMeta('storeInfo'))||{}}catch(_){storeInfo={}}render()}
 (async()=>{
   try{const s=localStorage.getItem('cwy-tr-store');if(s&&STORES.some(x=>x.id===s))curStore=s}catch(_){}
   hydrateGems();
   try{if(localStorage.getItem('cwy-tr-admin')==='1'){admin=true;document.body.classList.add('admin');$('#adminBtn').textContent='🔓';$('#adminBtn').classList.add('on')}}catch(_){}
   await DB.open();
+  Cloud.install();
   if(!(await DB.getMeta('seeded'))){
-    for(const s of SEED) await DB.put({...s,id:keyOf(s.store,s.part,s.title),images:[],updated:Date.now()});
+    for(const s of SEED) await DB.put({...s,id:keyOf(s.store,s.part,s.title),images:[],updated:1});
     await DB.setMeta('seeded',true);
   }
   if(((await DB.getMeta('seedv'))||1) < 2){
     const all=await DB.all(), ids=new Set(all.map(i=>i.id));
     const oldFifo=all.find(i=>i.id==='공통|주방|선입선출 (fifo)');
     if(oldFifo && oldFifo.content.startsWith('• 새로 들어온 재료는 뒤로, 먼저 들어온')) await DB.del(oldFifo.id);
-    for(const s of SEED2){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:Date.now()})}
+    for(const s of SEED2){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:1})}
     await DB.setMeta('seedv',2);
   }
   if(((await DB.getMeta('seedv'))||1) < 3){
     const all=await DB.all(), ids=new Set(all.map(i=>i.id));
     const oldPhone=all.find(i=>i.id==='공통|공통|근무 중 휴대폰 사용 주의');
     if(oldPhone && oldPhone.content.startsWith('• 근무 중 개인 휴대폰 사용 금지')) await DB.del(oldPhone.id);
-    for(const s of SEED3){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:Date.now()})}
+    for(const s of SEED3){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:1})}
     await DB.setMeta('seedv',3);
   }
   if(((await DB.getMeta('seedv'))||1) < 4){
     const ids=new Set((await DB.all()).map(i=>i.id));
-    for(const s of SEED4){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:Date.now()})}
+    for(const s of SEED4){const id=keyOf(s.store,s.part,s.title); if(!ids.has(id)) await DB.put({...s,id,images:[],updated:1})}
     await DB.setMeta('seedv',4);
   }
   await load(); showUndo();
+  Cloud.start();
   // 홈 화면 앱(오프라인) 지원 — 링크 미리보기 화면에서는 조용히 건너뜀
   try{ if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{}) }catch(_){}
 })();
