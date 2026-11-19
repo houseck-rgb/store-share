@@ -1,5 +1,5 @@
 // 매장업무교육 오프라인 캐시 — 버전 숫자를 올리면 새 화면으로 바뀜
-const CACHE = 'cwy-training-v12';
+const CACHE = 'cwy-training-v13';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
